@@ -54,45 +54,43 @@ def post_list(request):
 
         # Update the stock level based on input
         if t_type == 'DONATE':
-            food_item.stock_level = food_item.stock_level + amount
             success_msg = f"Successfully added {amount} units to {food_item.name}."
         elif t_type == 'TAKE':
             if food_item.stock_level < amount:
                 messages.error(request, f"Insufficient stock! Only {food_item.stock_level} available.")
                 return redirect('post_list')
             
-            food_item.stock_level = food_item.stock_level - amount
             success_msg = f"Successfully withdrew {amount} units of {food_item.name}."
         else:
             return redirect('post_list')
 
-        # Save changes and record the transaction
-        food_item.save()
+        # Saving the transaction now automatically updates the food_item stock
         Transaction.objects.create(item=food_item, person_name=person, quantity=amount, transaction_type=t_type)
         messages.success(request, success_msg)
 
         return redirect('post_list')
 
-    return render(request, 'blog/post_list.html', {'items': items})
+    return render(request, 'blog/post_list.html', {'items': items, 'page_title': 'Inventory'})
 
 def item_detail(request, pk):
     item = get_object_or_404(FoodItem, pk=pk)
     # This view allows the front end to show history/details for one specific food item
-    return render(request, 'blog/item_detail.html', {'item': item})
+    return render(request, 'blog/item_detail.html', {'item': item, 'page_title': 'Item Details'})
 
 def about(request):
     # A simple view for the about page
-    return render(request, 'blog/about.html')
+    return render(request, 'blog/about.html', {'page_title': 'About Us'})
 
 def index(request):
     # This connects the Index.html page
     # We pull the items here, so the home page can show a status update
     items = FoodItem.objects.all()
-    return render(request, 'blog/Index.html', {'items': items})
+    return render(request, 'blog/Index.html', {'items': items, 'page_title': 'Greetings Everyone'})
 
 def transaction_history(request):
+    # Simply get all transactions from the database and order them by date
     transactions = Transaction.objects.all().order_by('-date')
-    return render(request, 'blog/transaction_history.html', {'transactions': transactions})
+    return render(request, 'blog/transaction_history.html', {'transactions': transactions, 'page_title': 'Transaction History'})
 
 def clear_history(request):
     if request.method == "POST":
